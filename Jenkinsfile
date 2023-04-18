@@ -2,7 +2,15 @@
 pipeline{
         /* A Declarative Pipeline */
         agent any
-        stages{
+        tools{
+                maven "mvn"
+            }
+    stages {
+        stage("Cleaning WorkSpace"){
+            steps{
+                cleanWs()
+            }
+        } 
             stage('Build'){
                 steps{
                     sh 'mvn clean package'
