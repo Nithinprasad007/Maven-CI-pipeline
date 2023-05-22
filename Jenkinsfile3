@@ -54,5 +54,16 @@
                 jacoco()
             }
         }
+   stage('Static Analysis') {
+            steps {
+                // Execute Checkstyle and generate report
+                // Example: Using the Checkstyle plugin
+                checkstyle canComputeNew: false, defaultEncoding: '', healthy: '', pattern: 'checkstyle-result.xml', unHealthy: ''
+                
+                // Publish Checkstyle report
+                // Example: Using the Warnings Next Generation plugin
+                recordIssues enabledForFailure: true, tools: [checkStyle(pattern: 'checkstyle-result.xml')]
+            }
+        }
     }
   }
