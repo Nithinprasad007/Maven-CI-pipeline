@@ -1,0 +1,21 @@
+pipeline {
+    agent {
+        node {
+            label 'prod'
+        }
+    }
+    
+
+    stages {
+        stage('downloading artifact') {
+            steps {
+                sh 'jfrog rt dl example-repo-local/my-app-1.0-SNAPSHOT.jar'
+            }
+        }
+        stage('run artifact'){
+            steps{
+                sh 'java -jar my-app-1.0-SNAPSHOT.jar'
+            }
+        }
+    }
+}
