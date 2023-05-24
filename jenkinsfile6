@@ -9,10 +9,14 @@ pipeline {
     stages {
         stage('downloading artifact') {
             steps {
-                def artifactoryUrl = 'http://192.168.20.115:8082/artifactory/example-repo-local/my-app-1.0-SNAPSHOT.jar' 
-                sh 'curl -fL https://getcli.jfrog.io | sh'
-                sh 'export PATH="$PATH:$HOME/.jfrog/jfrog"'
-                sh 'jfrog rt dl example-repo-local/my-app-1.0-SNAPSHOT.jar'
+            script {
+                    // Define the JFrog Artifactory URL
+                    def artifactoryUrl = 'http://192.168.20.115/artifacts'
+                    sh 'curl -fL https://getcli.jfrog.io | sh'
+                    sh 'export PATH="$PATH:$HOME/.jfrog/jfrog"'
+                    sh 'jfrog rt dl example-repo-local/my-app-1.0-SNAPSHOT.jar'
+                }
+                
             }
         }
         stage('run artifact'){
