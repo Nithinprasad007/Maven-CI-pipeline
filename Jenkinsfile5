@@ -1,20 +1,83 @@
 pipeline {
-    agent {
-        node {
-            label 'prod'
-        }
+    agent any
+
+    tools {
+        maven 'mvn'
     }
     
+    options {
+        skipDefaultCheckout()
+    }
 
     stages {
-        stage('downloading artifact') {
+        stage("git pull") {
             steps {
-                sh 'jfrog rt dl example-repo-local/my-app-1.0-SNAPSHOT.jar'
+                git branch: 'master', credentialsId: 'np', url: 'https://github.com/thevictorgreen/JavaJenkinsMavenSonarqubeExample.git'
             }
         }
-        stage('run artifact'){
-            steps{
-                sh 'java -jar my-app-1.0-SNAPSHOT.jar'
+
+        stage("build") {
+            steps {
+                script {
+                    sh returnStdout: true, script: 'mvn clean install'
+                }
+            }
+        }
+
+        stage("sonar") {
+            steps {
+                script {
+                    withSonarQubeEnv('sonarQube') {
+                        sh returnStdout: true, script: 'mvn clean verify sonar:sonar -Dsonar.projectName=sonarIntegratedjfrog-nexusProject -Dsonar.projectKey=sonarIntegratedjfrog-nexusProject'
+                    }
+                }
+            }
+        }
+
+        stage("Archive the Artifact") {
+            steps {
+                archiveArtifacts artifacts: '**/*.jar', followSymlinks: false
+            }
+        }
+
+        stage('jfrog') {
+            steps {
+                rtUpload (
+                    serverId: 'jfrog',
+                    spec: '''{
+                        "files": [
+                            {
+                                "pattern": "*.jar",
+                                "target": "example-repo-local"
+                            }
+                        ]
+                    }''',
+                )
+            }
+        }
+
+        stage('JaCoCo') {
+            steps {
+                echo 'Code Coverage'
+                jacoco()
+            }
+        }
+
+        stage('Static Analysis') {
+            steps {
+                script {
+                    sh returnStdout: true, script: 'mvn checkstyle:checkstyle'
+                    recordIssues enabledForFailure: true, tools: [checkStyle(pattern: 'target/checkstyle-result.xml')]
+                    sh returnStdout: true, script: 'mvn pmd:check'
+                    recordIssues enabledForFailure: true, tools: [pmdParser(pattern: 'target/pmd.xml')]
+                }
+            }
+        }
+        
+        stage("Trigger Deployment") {
+            steps {
+                // Trigger the deployment pipeline as a downstream job
+                build job: 'CI-CD-integrated', wait: false
             }
         }
     }
