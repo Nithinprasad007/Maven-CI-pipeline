@@ -77,7 +77,7 @@ pipeline {
         stage("Trigger Deployment") {
             steps {
                 // Trigger the deployment pipeline as a downstream job
-                build job: 'CI-CD-integrated', wait: false
+                build job: 'CD-pipeline', wait: false
             }
         }
     }
