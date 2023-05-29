@@ -22,7 +22,6 @@ pipeline {
         stage('run artifact'){
             steps{
                 sh 'java -cp my-app-1.0-SNAPSHOT.jar com.thevictorgreen.app.App'
-'
             }
         }
     }
